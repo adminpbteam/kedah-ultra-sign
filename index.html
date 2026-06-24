@@ -19,14 +19,12 @@
 </head>
 <body>
 
-    <!-- FASA 1: Carian IC -->
     <div id="carian-ic-box" class="box hidden">
         <h3 style="margin-top:0;">Sila Masukkan No. Kad Pengenalan Anda:</h3>
         <input type="text" id="input-ic" placeholder="Contoh: 950102145566 (Tanpa -)">
         <button onclick="semakICPeserta()" style="background:#007bff;">Semak Rekod</button>
     </div>
 
-    <!-- FASA 2: Borang Utama -->
     <div id="borang-utama" class="hidden">
         <h2 style="text-align:center; color:#333;">KEDAH ULTRA 2026 CONCERN FORM</h2>
         
@@ -74,7 +72,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // NATIVE SIGNATURE PAD ENGINE (TANPA CDN LUARAN)
+        // NATIVE SIGNATURE PAD ENGINE
         const canvas = document.getElementById('signature-canvas');
         const ctx = canvas.getContext('2d');
         let drawing = false;
@@ -137,12 +135,13 @@
             resizeCanvas();
         }
 
+        // PEMBETULAN DI SINI: Tukar .document() kepada .doc()
         async function semakICPeserta() {
             const noIC = document.getElementById('input-ic').value.trim().replace(/[^0-9]/g, '');
             if(!noIC) { alert("Sila masukkan No. IC anda."); return; }
 
             try {
-                const snapshot = await db.collection("senarai_peserta").document(noIC).get();
+                const snapshot = await db.collection("senarai_peserta").doc(noIC).get();
                 if (!snapshot.exists) {
                     alert("Maaf, No. IC anda tiada dalam rekod Kedah Ultra 2026. Sila semak semula atau hubungi urus setia.");
                 } else {
@@ -154,6 +153,7 @@
             }
         }
 
+        // PEMBETULAN DI SINI JUGA: Tukar .document() kepada .doc()
         async function submitSignature() {
             if (!document.getElementById('setuju').checked) { alert("Sila tanda kotak 'Saya bersetuju' terlebih dahulu."); return; }
             if (isCanvasEmpty()) { alert("Sila turunkan tandatangan anda pada kotak."); return; }
@@ -161,7 +161,7 @@
             const dataURL = canvas.toDataURL("image/png");
 
             try {
-                await db.collection("tandatangan_peserta").document(ic).set({
+                await db.collection("tandatangan_peserta").doc(ic).set({
                     nama: nama,
                     ic: ic,
                     emel: emel,
