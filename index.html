@@ -15,18 +15,29 @@
         .btn-clear { background: #dc3545; }
         .btn-pdf { display: inline-block; padding: 14px 24px; background: #007bff; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px; width: 90%; text-align: center; box-shadow: 0 4px 6px rgba(0,123,255,0.2); }
         input[type="text"] { padding: 10px; width: 95%; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
+        .header-title { text-align: center; color: #333; margin-bottom: 20px; margin-top: 10px; }
+        .header-title h1 { margin: 0; font-size: 26px; font-weight: bold; color: #111; }
+        .header-title p { margin: 5px 0 0 0; font-size: 16px; color: #666; font-style: italic; }
     </style>
 </head>
 <body>
 
+    <!-- FASA 1: Carian IC (Ditambah Tajuk Atas Kotak) -->
     <div id="carian-ic-box" class="box hidden">
-        <h3 style="margin-top:0;">Sila Masukkan No. Kad Pengenalan Anda:</h3>
+        <div class="header-title">
+            <h1>KEDAH ULTRA 2026</h1>
+            <p>Acknowledgement, Release and Indemnity</p>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 20px;">
+        <h3 style="margin-top:0; font-size: 17px; color: #111;">Sila Masukkan No. Kad Pengenalan Anda:</h3>
         <input type="text" id="input-ic" placeholder="Contoh: 950102145566 (Tanpa -)">
         <button onclick="semakICPeserta()" style="background:#007bff;">Semak Rekod</button>
     </div>
 
+    <!-- FASA 2: Borang Utama -->
     <div id="borang-utama" class="hidden">
-        <h2 style="text-align:center; color:#333;">KEDAH ULTRA 2026 CONCERN FORM</h2>
+        <h2 style="text-align:center; color:#333; margin-bottom: 5px;">KEDAH ULTRA 2026</h2>
+        <p style="text-align:center; color:#666; margin-top: 0; margin-bottom: 20px; font-style: italic;">Acknowledgement, Release and Indemnity</p>
         
         <div class="box">
             <p><strong>Nama Peserta:</strong> <span id="papar-nama">-</span></p>
@@ -87,12 +98,10 @@
             return { x: mouseEvent.clientX - rect.left, y: mouseEvent.clientY - rect.top };
         }
 
-        // Mouse Events
         canvas.addEventListener("mousedown", function(e) { drawing = true; ctx.beginPath(); var pos = getMousePos(canvas, e); ctx.moveTo(pos.x, pos.y); }, false);
         canvas.addEventListener("mouseup", function(e) { drawing = false; }, false);
         canvas.addEventListener("mousemove", function(e) { if (!drawing) return; ctx.lineWidth = 3; ctx.lineCap = "round"; ctx.strokeStyle = "#000000"; var pos = getMousePos(canvas, e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); }, false);
 
-        // Touch Events (Handphone)
         canvas.addEventListener("touchstart", function(e) { e.preventDefault(); drawing = true; ctx.beginPath(); var pos = getTouchPos(canvas, e); ctx.moveTo(pos.x, pos.y); }, false);
         canvas.addEventListener("touchend", function(e) { e.preventDefault(); drawing = false; }, false);
         canvas.addEventListener("touchmove", function(e) { e.preventDefault(); if (!drawing) return; ctx.lineWidth = 3; ctx.lineCap = "round"; ctx.strokeStyle = "#000000"; var pos = getTouchPos(canvas, e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); }, false);
@@ -110,7 +119,6 @@
         }
         window.onresize = resizeCanvas;
 
-        // Logik URL Parameter
         const urlParams = new URLSearchParams(window.location.search);
         let nama = urlParams.get('nama');
         let ic = urlParams.get('ic');
@@ -135,7 +143,6 @@
             resizeCanvas();
         }
 
-        // PEMBETULAN DI SINI: Tukar .document() kepada .doc()
         async function semakICPeserta() {
             const noIC = document.getElementById('input-ic').value.trim().replace(/[^0-9]/g, '');
             if(!noIC) { alert("Sila masukkan No. IC anda."); return; }
@@ -153,7 +160,6 @@
             }
         }
 
-        // PEMBETULAN DI SINI JUGA: Tukar .document() kepada .doc()
         async function submitSignature() {
             if (!document.getElementById('setuju').checked) { alert("Sila tanda kotak 'Saya bersetuju' terlebih dahulu."); return; }
             if (isCanvasEmpty()) { alert("Sila turunkan tandatangan anda pada kotak."); return; }
