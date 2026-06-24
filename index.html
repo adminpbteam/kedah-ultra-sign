@@ -19,12 +19,14 @@
 </head>
 <body>
 
+    <!-- FASA 1: Carian IC untuk yang Scan QR Code -->
     <div id="carian-ic-box" class="box hidden">
         <h3 style="margin-top:0;">Sila Masukkan No. Kad Pengenalan Anda:</h3>
         <input type="text" id="input-ic" placeholder="Contoh: 950102145566 (Tanpa -)">
         <button onclick="semakICPeserta()" style="background:#007bff;">Semak Rekod</button>
     </div>
 
+    <!-- FASA 2: Borang Utama & Tempat Sign -->
     <div id="borang-utama" class="hidden">
         <h2 style="text-align:center; color:#333;">KEDAH ULTRA 2026 CONCERN FORM</h2>
         
@@ -50,6 +52,12 @@
     </div>
 
     <script>
+        // TANGKAP RALAT JAVASCRIPT DAN PAPAR SEBAGAI ALERT POP-UP
+        window.onerror = function(message, source, lineno, colno, error) {
+            alert("Ralat Dikesan: " + message + "\nBaris: " + lineno + "\nSila hantar screenshot ini kepada admin.");
+            return true;
+        };
+
         // === PASTE KOD FIREBASE CONFIG ANDA DI SINI ===
         const firebaseConfig = {
             apiKey: "AIzaSyARursEZV5iWR12S8GM06sIhMehsl-ITmE",
