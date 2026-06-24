@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>KEDAH ULTRA 2026 CONCERN FORM</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+    
+    <style>
+        body { font-family: Arial, sans-serif; padding: 15px; max-width: 600px; margin: 0 auto; background-color: #f4f4f9; }
+        .box { border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        canvas { border: 1px dashed #666; background: #fff; width: 100%; height: 200px; border-radius: 4px; }
+        .hidden { display: none; }
+        button { padding: 12px 20px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; width: 100%; margin-top: 10px; }
+        .btn-clear { background: #dc3545; }
+        input[type="text"] { padding: 10px; width: 95%; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
+    </style>
+</head>
+<body>
+
+    <div id="carian-ic-box" class="box hidden">
+        <h3 style="margin-top:0;">Sila Masukkan No. Kad Pengenalan Anda:</h3>
+        <input type="text" id="input-ic" placeholder="Contoh: 950102145566 (Tanpa -)">
+        <button onclick="semakICPeserta()" style="background:#007bff;">Semak Rekod</button>
+    </div>
+
+    <div id="borang-utama" class="hidden">
+        <h2 style="text-align:center; color:#333;">KEDAH ULTRA 2026 CONCERN FORM</h2>
+        
+        <div class="box">
+            <p><strong>Nama Peserta:</strong> <span id="papar-nama">-</span></p>
+            <p><strong>No. IC / Pasport:</strong> <span id="papar-ic">-</span></p>
+        </div>
+
+        <div class="box" style="padding:0; overflow:hidden;">
+            <iframe id="pdf-view" src="./borang_kedah_ultra.pdf" width="100%" height="450px" style="border:none;"></iframe>
+        </div>
+
+        <div class="box">
+            <p><input type="checkbox" id="setuju"> <strong>Saya dengan ini mengaku telah membaca, memahami, dan bersetuju dengan segala terma, pelepasan, dan ganti rugi (Acknowledgement, Release and Indemnity) yang terkandung di dalam dokumen di atas.</strong></p>
+        </div>
+
+        <div class="box">
+            <h3 style="margin-top:0;">Tandatangan Menggunakan Jari Anda Di Bawah:</h3>
+            <canvas id="signature-canvas"></canvas>
+            <button onclick="clearSig()" class="btn-clear">Padam & Sign Semula</button>
+            <button onclick="submitSignature()">Hantar Tandatangan</button>
+        </div>
+    </div>
+
+    <script>
+        // === PASTE KOD FIREBASE CONFIG ANDA DI SINI ===
+        const firebaseConfig = {
+            apiKey: "PASTE_DI_SINI",
+            authDomain: "PASTE_DI_SINI",
+            projectId: "PASTE_DI_SINI",
+            storageBucket: "PASTE_DI_SINI",
+            messagingSenderId: "PASTE_DI_SINI",
+            appId: "PASTE_DI_SINI"
+        };
+        // ==============================================
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const canvas = document.getElementById('signature-canvas');
+        const signaturePad = new SignaturePad(canvas);
+
+        // Resize canvas secara automatik supaya mesra handphone
+        function resizeCanvas() {
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            canvas.getContext("2d").scale(ratio, ratio);
+            signaturePad.clear();
+        }
+        window.onresize = resizeCanvas;
+
+        // Tangkap data dari link URL (Contoh kes klik emel Brevo)
+        const urlParams = new URLSearchParams(window.location.search);
+        let nama = urlParams.get('nama');
+        let ic = urlParams.get('ic');
+        let emel = urlParams.get('emel') || "Tiada Emel";
+
+        window.onload = function() {
+            resizeCanvas();
+            if (nama && ic) {
+                bukaBorangUtama(nama, ic);
+            } else {
+                document.getElementById('carian-ic-box').classList.remove('hidden');
+            }
+        }
+
+        function bukaBorangUtama(namaPeserta, icPeserta) {
+            nama = namaPeserta;
+            ic = icPeserta;
+            document.getElementById('papar-nama').innerText = nama;
+            document.getElementById('papar-ic').innerText = ic;
+            document.getElementById('carian-ic-box').classList.add('hidden');
+            document.getElementById('borang-utama').classList.remove('hidden');
+            signaturePad.clear(); // pastikan canvas bersih semula selepas unhide
+        }
+
+        // Fungsi untuk kes SCAN QR CODE (Semak IC di Firestore)
+        async function semakICPeserta() {
+            const noIC = document.getElementById('input-ic').value.trim().replace(/[^0-9]/g, '');
+            if(!noIC) { alert("Sila masukkan No. IC anda."); return; }
+
+            try {
+                const snapshot = await db.collection("senarai_peserta").document(noIC).get();
+                if (!snapshot.exists) {
+                    alert("Maaf, No. IC anda tiada dalam rekod Kedah Ultra 2026. Sila semak semula atau hubungi urus setia.");
+                } else {
+                    const data = snapshot.data();
+                    bukaBorangUtama(data.nama, data.ic);
+                }
+            } catch(e) {
+                alert("Ralat sistem: " + e.message);
+            }
+        }
+
+        function clearSig() { signaturePad.clear(); }
+
+        async function submitSignature() {
+            if (!document.getElementById('setuju').checked) { alert("Sila tanda kotak 'Saya bersetuju' terlebih dahulu."); return; }
+            if (signaturePad.isEmpty()) { alert("Sila turunkan tandatangan anda pada kotak yang disediakan."); return; }
+
+            // Tukar contengan jari kepada text Base64 string yang panjang
+            const dataURL = signaturePad.toDataURL("image/png");
+
+            try {
+                // Simpan rekod pengesahan ke Firestore
+                await db.collection("tandatangan_peserta").document(ic).set({
+                    nama: nama,
+                    ic: ic,
+                    emel: emel,
+                    signature_base64: dataURL,
+                    tarikh_sign: new Date(),
+                    status_proses: "pending"
+                });
+                
+                document.getElementById('borang-utama').innerHTML = "<div class='box' style='text-align:center;'><h2>✅ Terima Kasih!</h2><p>Tandatangan digital anda bagi fail KEDAH ULTRA 2026 CONCERN FORM telah berjaya dihantar dan direkodkan.</p></div>";
+            } catch (error) {
+                alert("Gagal menghantar: " + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
